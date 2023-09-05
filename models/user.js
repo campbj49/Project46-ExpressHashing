@@ -49,7 +49,7 @@ class User {
       }
       throw new ExpressError("User not found", 400);
     } catch (err) {
-      return next(err);
+      return err;
     }
   }
 
@@ -65,7 +65,7 @@ class User {
         [username]);
 
     if (!result.rows[0]) {
-      throw new ExpressError(`No such message: ${username}`, 404);
+      throw new ExpressError(`No such user: ${username}`, 404);
     }
    }
 
