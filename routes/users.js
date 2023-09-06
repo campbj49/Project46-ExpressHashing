@@ -1,22 +1,24 @@
-/** GET / - get list of users.
- *
- * => {users: [{username, first_name, last_name, phone}, ...]}
- *
- **/
-
-
 const express = require("express");
+const{
+  ensureLoggedIn,
+  ensureCorrectUser
+} = require("../middleware/auth");
 
 const User = require("../models/user.js");
 const Message = require("../models/message.js");
 
 const router = new express.Router();
 
-/** GET /auth: Show login page by default */
+/** GET / - get list of users.
+ *
+ * => {users: [{username, first_name, last_name, phone}, ...]}
+ *
+ **/
 
-router.get("/", async function(req, res, next) {
+router.get("/", ensureLoggedIn, async function(req, res, next) {
   try {
-    return res.json("User detail placeholder pages");
+    let userList = await User.all()
+    return res.json({users: userList});
   } catch (err) {
     return next(err);
   }
@@ -27,6 +29,15 @@ router.get("/", async function(req, res, next) {
  * => {user: {username, first_name, last_name, phone, join_at, last_login_at}}
  *
  **/
+
+router.get("/:username", ensureCorrectUser, async function(req, res, next) {
+  try {
+    let user = await User.get(req.params.username);
+    return res.json({users: user});
+  } catch (err) {
+    return next(err);
+  }
+});
 
 
 /** GET /:username/to - get messages to user
@@ -39,6 +50,15 @@ router.get("/", async function(req, res, next) {
  *
  **/
 
+router.get("/:username/to", ensureCorrectUser, async function(req, res, next) {
+  try {
+    let messages = await User.messagesTo(req.params.username);
+    return res.json({messages: messages});
+  } catch (err) {
+    return next(err);
+  }
+});
+
 
 /** GET /:username/from - get messages from user
  *
@@ -49,4 +69,13 @@ router.get("/", async function(req, res, next) {
  *                 to_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
+
+router.get("/:username/from", ensureCorrectUser, async function(req, res, next) {
+  try {
+    let messages = await User.messagesFrom(req.params.username);
+    return res.json({messages: messages});
+  } catch (err) {
+    return next(err);
+  }
+});
 module.exports = router;
